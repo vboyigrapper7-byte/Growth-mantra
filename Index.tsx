@@ -184,12 +184,21 @@ export default function Index(): JSX.Element {
     setIsSubmitting(true);
 
     try {
-      const response = await fetch("/api/submit-lead", {
+      // Add access key to data
+      const submitData = {
+        access_key: '42364638-c3d2-4e41-bee3-2388624dae19',
+        ...data,
+        subject: `New Lead: ${data.name}`,
+        from_name: "GrowthMantra Contact Form"
+      };
+
+      const response = await fetch("https://api.web3forms.com/submit", {
         method: "POST",
         headers: {
           'Content-Type': 'application/json',
+          'Accept': 'application/json'
         },
-        body: JSON.stringify(data)
+        body: JSON.stringify(submitData)
       });
 
       if (response.ok) {
