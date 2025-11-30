@@ -35,7 +35,7 @@ app.post('/api/submit-lead', async (req, res) => {
                 'Accept': 'application/json'
             },
             body: JSON.stringify({
-                access_key: 'b2ce4c88-2bdc-41d9-8ea0-bb2f9ec26999',
+                access_key: '42364638-c3d2-4e41-bee3-2388624dae19',
                 name: name,
                 email: email,
                 message: message,
@@ -44,9 +44,16 @@ app.post('/api/submit-lead', async (req, res) => {
             })
         });
 
-        const result = await response.json();
+        const text = await response.text();
+        let result;
+        try {
+            result = JSON.parse(text);
+        } catch (e) {
+            console.error('Web3Forms response was not JSON:', text);
+            return res.status(500).json({ error: 'Failed to communicate with email service', details: text });
+        }
 
-        if (response.status === 200) {
+        if (response.status === 200 && result.success) {
             console.log('Email sent successfully via Web3Forms');
             return res.status(200).json({ message: 'Email sent successfully' });
         } else {
