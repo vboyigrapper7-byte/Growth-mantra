@@ -2,6 +2,8 @@ import express from 'express';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import cors from 'cors';
+import { createRequire } from 'module';
+const require = createRequire(import.meta.url);
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -27,39 +29,45 @@ app.post('/api/submit-lead', async (req, res) => {
 
         console.log(`Processing email from: ${email}`);
 
-        // Web3Forms API Endpoint
-        const response = await fetch('https://api.web3forms.com/submit', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Accept': 'application/json',
-                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
-            },
-            body: JSON.stringify({
-                access_key: '42364638-c3d2-4e41-bee3-2388624dae19',
-                name: name,
-                email: email,
-                message: message,
-                subject: `New Lead: ${name}`,
-                from_name: "GrowthMantra Contact Form"
-            })
-        });
+        // Brevo (Sendinblue) Configuration
+        const SibApiV3Sdk = require('sib-api-v3-sdk');
+        const defaultClient = SibApiV3Sdk.ApiClient.instance;
 
-        const text = await response.text();
-        let result;
+        // Configure API key authorization: api-key
+        const apiKey = defaultClient.authentications['api-key'];
+        apiKey.apiKey = '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';
+
+        const apiInstance = new SibApiV3Sdk.TransactionalEmailsApi();
+        const sendSmtpEmail = new SibApiV3Sdk.SendSmtpEmail();
+
+        sendSmtpEmail.subject = `New Lead: ${name}`;
+        sendSmtpEmail.htmlContent = `
+            <html>
+                <body>
+                    <h1>New Lead Received</h1>
+                    <p><strong>Name:</strong> ${name}</p>
+                    <p><strong>Email:</strong> ${email}</p>
+                    <p><strong>Message:</strong></p>
+                    <p>${message}</p>
+                </body>
+            </html>
+        `;
+        sendSmtpEmail.sender = { "name": "GrowthMantra Contact Form", "email": "growthmantrasolutions@gmail.com" };
+        sendSmtpEmail.to = [{ "email": "growthmantrasolutions@gmail.com", "name": "GrowthMantra Team" }];
+        sendSmtpEmail.replyTo = { "email": email, "name": name };
+
+        console.log("Sending email via Brevo...");
+
         try {
-            result = JSON.parse(text);
-        } catch (e) {
-            console.error('Web3Forms response was not JSON:', text);
-            return res.status(500).json({ error: 'Failed to communicate with email service', details: text });
-        }
-
-        if (response.status === 200 && result.success) {
-            console.log('Email sent successfully via Web3Forms');
+            const data = await apiInstance.sendTransacEmail(sendSmtpEmail);
+            console.log('Email sent successfully via Brevo. Returned data: ' + JSON.stringify(data));
             return res.status(200).json({ message: 'Email sent successfully' });
-        } else {
-            console.error('Web3Forms error:', result);
-            return res.status(500).json({ error: result.message || 'Failed to send email via Web3Forms' });
+        } catch (error) {
+            console.error('Brevo API error:', error);
+            return res.status(500).json({
+                error: 'Failed to send email via Brevo',
+                details: error.message
+            });
         }
 
     } catch (error) {
