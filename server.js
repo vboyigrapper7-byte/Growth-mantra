@@ -3,6 +3,9 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import cors from 'cors';
 import { createRequire } from 'module';
+import dotenv from 'dotenv';
+
+dotenv.config();
 const require = createRequire(import.meta.url);
 
 const __filename = fileURLToPath(import.meta.url);
@@ -35,10 +38,18 @@ app.post('/api/submit-lead', async (req, res) => {
 
         // Configure API key authorization: api-key
         const apiKey = defaultClient.authentications['api-key'];
-        apiKey.apiKey = '';
+        apiKey.apiKey = process.env.BREVO_API_KEY;
+
+        if (!apiKey.apiKey) {
+            console.error("BREVO_API_KEY is not set");
+            return res.status(500).json({ error: 'Server configuration error' });
+        }
 
         const apiInstance = new SibApiV3Sdk.TransactionalEmailsApi();
         const sendSmtpEmail = new SibApiV3Sdk.SendSmtpEmail();
+
+        const senderEmail = process.env.EMAIL_FROM || "growthmantrasolutions@gmail.com";
+        const recipientEmail = process.env.EMAIL_TO || "growthmantrasolutions@gmail.com";
 
         sendSmtpEmail.subject = `New Lead: ${name}`;
         sendSmtpEmail.htmlContent = `
@@ -52,8 +63,8 @@ app.post('/api/submit-lead', async (req, res) => {
                 </body>
             </html>
         `;
-        sendSmtpEmail.sender = { "name": "GrowthMantra Contact Form", "email": "growthmantrasolutions@gmail.com" };
-        sendSmtpEmail.to = [{ "email": "growthmantrasolutions@gmail.com", "name": "GrowthMantra Team" }];
+        sendSmtpEmail.sender = { "name": "GrowthMantra Contact Form", "email": senderEmail };
+        sendSmtpEmail.to = [{ "email": recipientEmail, "name": "GrowthMantra Team" }];
         sendSmtpEmail.replyTo = { "email": email, "name": name };
 
         console.log("Sending email via Brevo...");
@@ -87,6 +98,3 @@ app.get('*', (req, res) => {
 app.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);
 });
-
-
-
