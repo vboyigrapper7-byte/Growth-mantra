@@ -3,10 +3,14 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import cors from 'cors';
 import { createRequire } from 'module';
-import dotenv from 'dotenv';
-
-dotenv.config();
 const require = createRequire(import.meta.url);
+
+// Only load dotenv in development or if installed
+try {
+    require('dotenv').config();
+} catch (e) {
+    // dotenv is optional in production where env vars are set by the platform
+}
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
