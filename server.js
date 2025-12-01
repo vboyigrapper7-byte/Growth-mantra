@@ -35,7 +35,7 @@ app.post('/api/submit-lead', async (req, res) => {
 
         // Configure API key authorization: api-key
         const apiKey = defaultClient.authentications['api-key'];
-        apiKey.apiKey = 'eyJhcGlfa2V5IjoieGtleXNpYi1mOTkxNGNmM2NkOTNkYzRhNTlmNzY4YjE1OWI2ODU4M2NlYmNmZWNhMWRjYTQ1OTg3Nzg4Y2RjN2Q5ODQ1ZDZjLUNyRDFtTGVPNE52cEhZeEkifQ';
+        apiKey.apiKey = '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';
 
         const apiInstance = new SibApiV3Sdk.TransactionalEmailsApi();
         const sendSmtpEmail = new SibApiV3Sdk.SendSmtpEmail();
@@ -87,4 +87,5 @@ app.get('*', (req, res) => {
 app.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);
 });
+
 
